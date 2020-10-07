@@ -3,7 +3,7 @@
 ## fully readme will be added when the dumper will be finished
 
 # freeze-dumper
-This project made for make cheats working dynamically without updating manually offsets or netvars step by step.
+This project made for make cheats working dynamically without updating manually offsets or netvars step by step.  
 Feel free to use this tool.
 
 ## Features
