@@ -7,9 +7,9 @@ This project made for make cheats working dynamically without updating manually 
 Feel free to use this tool.
 
 ## Features
-[] offsets dumper
-[] netvars dumper (csgo for now)
-[] automated config maker for dumping dynamically a bunch of offsets
+- [] offsets dumper
+- [] netvars dumper (csgo for now)
+- [] automated config maker for dumping dynamically a bunch of offsets
 
 ## screenshots
 TBD
