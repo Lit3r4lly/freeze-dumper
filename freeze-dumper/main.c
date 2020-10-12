@@ -6,9 +6,7 @@
 */
 
 int main(int argc, char** argv) {
-	int i									= 0;
 	int argsValid							= 0;
-	char pattern[MAX_PATTERN_LENGTH]		= { 0 };
 	PatternScanningInfo* info				=	NULL;
 
 	printf("Welcme to freeze-dumper, a tool made for dumping offsets / netvars for CS:GO\n");
