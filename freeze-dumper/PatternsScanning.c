@@ -1,14 +1,14 @@
 #include "includes.h"
 
 DWORD getOffset(const PatternScanningInfo* info) {
-	int processId = 0;
-	DWORD signatureIndex = 0;
-	BYTE* moduleContent = NULL;
-	size_t bytesRead = 0;
-	HANDLE hProcess = NULL;
-	HMODULE hModule = NULL;
-	MODULEINFO moduleInfo = { 0 };
-	DWORD signatureOffset = 0;
+	int processId			= 0;
+	DWORD signatureIndex	= 0;
+	BYTE* moduleContent		= NULL;
+	size_t bytesRead		= 0;
+	HANDLE hProcess			= NULL;
+	HMODULE hModule			= NULL;
+	MODULEINFO moduleInfo	= { 0 };
+	DWORD signatureOffset	= 0;
 
 	processId = getProcessIdByName(info->processName);
 	if (processId == FAILED_TO_FIND_PID || processId == FAILED_TO_COPY_PROCESS_ENTRY_LIST_TO_BUFFER || processId == FAILED_TO_OPEN_SNAPSHOT) {
@@ -60,12 +60,12 @@ DWORD patternScanning(const char* pattern, const char* moduleName, const int pro
 }
 
 DWORD getProcessIdByName(char* processName) {
-	WCHAR processImage[MAX_PROCESS_NAME_LENGTH]	= { 0 };
-	DWORD processId								= 0;
-	PROCESSENTRY32 processEntry					= { 0 };
-	HANDLE hSnapshot							= NULL;
+	WCHAR processWildName[MAX_PROCESS_NAME_LENGTH]	= { 0 };
+	DWORD processId									= 0;
+	PROCESSENTRY32 processEntry						= { 0 };
+	HANDLE hSnapshot								= NULL;
 
-	swprintf(processImage, MAX_PROCESS_NAME_LENGTH, L"%hs", processName);
+	swprintf(processWildName, MAX_PROCESS_NAME_LENGTH, L"%hs", processName);
 
 	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
 	if (hSnapshot == INVALID_HANDLE_VALUE) {
@@ -75,7 +75,7 @@ DWORD getProcessIdByName(char* processName) {
 
 	processEntry.dwSize = sizeof(PROCESSENTRY32);
 	if (Process32First(hSnapshot, &processEntry)) {
-		if (!wcscmp(processEntry.szExeFile, processImage)) {
+		if (!wcscmp(processEntry.szExeFile, processWildName)) {
 			CloseHandle(hSnapshot);
 
 			processId = processEntry.th32ProcessID;
@@ -90,7 +90,7 @@ DWORD getProcessIdByName(char* processName) {
 	}
 
 	while (Process32Next(hSnapshot, &processEntry)) {
-		if (!wcscmp(processEntry.szExeFile, processImage)) {
+		if (!wcscmp(processEntry.szExeFile, processWildName)) {
 			CloseHandle(hSnapshot);
 
 			processId = processEntry.th32ProcessID;
@@ -104,9 +104,12 @@ DWORD getProcessIdByName(char* processName) {
 }
 
 HMODULE getModuleHandle(const int processId, const char* moduleName) {
-	HMODULE hModule				= NULL;
-	HANDLE hSnapshot			= NULL;
-	MODULEENTRY32 moduleEntry	= { 0 };
+	WCHAR moduleWildName[MAX_MODULE_NAME_LENGTH] = { 0 };
+	HMODULE hModule								= NULL;
+	HANDLE hSnapshot							= NULL;
+	MODULEENTRY32 moduleEntry					= { 0 };
+
+	swprintf(moduleWildName, MAX_PROCESS_NAME_LENGTH, L"%hs", moduleName);
 
 	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
 	if (hSnapshot == INVALID_HANDLE_VALUE) {
@@ -116,8 +119,7 @@ HMODULE getModuleHandle(const int processId, const char* moduleName) {
 
 	moduleEntry.dwSize = sizeof(MODULEENTRY32);
 	if (Module32First(hSnapshot, &moduleEntry)) {
-		if (!stricmp(moduleEntry.szModule, moduleName)) {
-			CloseHandle(hSnapshot);
+		if (!wcscmp(moduleEntry.szModule, moduleName)) {
 
 			hModule = moduleEntry.hModule;
 			CloseHandle(hSnapshot);
@@ -133,10 +135,10 @@ HMODULE getModuleHandle(const int processId, const char* moduleName) {
 	}
 
 	while (Module32Next(hSnapshot, &moduleEntry)) {
-		if (!stricmp(moduleEntry.szModule, moduleName)) {
-			CloseHandle(hSnapshot);
+		if (!wcscmp(moduleEntry.szModule, moduleName)) {
 
 			hModule = moduleEntry.hModule;
+			CloseHandle(hSnapshot);
 			return hModule;
 		}
 	}
