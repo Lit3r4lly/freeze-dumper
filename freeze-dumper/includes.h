@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <Windows.h>
+#include <TlHelp32.h>
+#include <psapi.h>
+
 #include "Errors.h"
 #include "PatternScanning.h"
 #include "Props.h"
