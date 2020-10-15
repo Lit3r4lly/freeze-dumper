@@ -4,11 +4,10 @@ DWORD getOffset(const PatternScanningInfo* info) {
 	int processId			= 0;
 	DWORD signatureIndex	= 0;
 	BYTE* moduleContent		= NULL;
-	size_t bytesRead		= 0;
 	HANDLE hProcess			= NULL;
 	HMODULE hModule			= NULL;
 	MODULEINFO moduleInfo	= { 0 };
-	DWORD signatureOffset	= 0;
+	DWORD signatureOffset	= 0; 
 
 	processId = getProcessIdByName(info->processName);
 	if (processId == FAILED_TO_FIND_PID || processId == FAILED_TO_COPY_PROCESS_ENTRY_LIST_TO_BUFFER || processId == FAILED_TO_OPEN_SNAPSHOT) {
@@ -18,33 +17,59 @@ DWORD getOffset(const PatternScanningInfo* info) {
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
 	hModule = getModuleHandle(processId, info->moduleName);
 
+	if (hModule == FAILED_TO_FIND_MODULE_HANDLE || hModule == FAILED_TO_COPY_MODULE_ENTRY_LIST_TO_BUFFER || hModule == FAILED_TO_OPEN_SNAPSHOT) {
+		return FAILED_TO_FIND_OFFSET;
+	}
+
 	GetModuleInformation(hProcess, hModule, &moduleInfo, sizeof(moduleInfo));
-	if (!ReadProcessMemory(hProcess, hModule, &moduleContent, moduleInfo.SizeOfImage, bytesRead)) {
-		printf("[!] Failed to read memory from the module");
+
+	moduleContent = (BYTE*)malloc(moduleInfo.SizeOfImage * sizeof(BYTE));
+	if(moduleContent == NULL) {
+		printf("[!] Failed to allocate memory for module content");
+		CloseHandle(hProcess);
+
+		return ALLOCATION_FAILED;
+	}
+
+	if (!ReadProcessMemory(hProcess, (void*)hModule, (void*)moduleContent, (size_t)moduleInfo.SizeOfImage, NULL)) {
+		printf("[!] Failed to read memory from the module\n");
+		
+		free(moduleContent);
+		CloseHandle(hProcess);
+		
 		return FAILED_TO_READ_MEMORY;
 	}
 
-	signatureIndex = patternScanning(info->pattern, info->moduleName, processId, moduleContent);
+	signatureIndex = patternScanning(info->pattern, moduleContent, moduleInfo.SizeOfImage, info->mask, info->offset);
 	if (signatureIndex == FAILED_TO_FIND_OFFSET) {
+		free(moduleContent);
+		CloseHandle(hProcess);
+
 		return FAILED_TO_FIND_OFFSET;
 	}
 	
-	memcpy(&signatureOffset, &moduleContent[signatureIndex], sizeof(DWORD));
+	memcpy(&signatureOffset, &moduleContent[signatureIndex + info->offset], sizeof(DWORD));
+
+	free(moduleContent);
+	CloseHandle(hProcess);
 	return signatureOffset;
 }
 
-DWORD patternScanning(const char* pattern, const char* moduleName, const int processId, const BYTE* moduleContent) {
-	int i, j	= 0;
+int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int moduleSize, const char* mask, const int offset) {
+	DWORD i, j	= 0;
 	int flag	= TRUE;
 
-	for (i = 0; ; i++) {
-		for (j = 0; ; j++) {
-			flag = TRUE;
+	for (i = 0; i < moduleSize ; i++) {
+		flag = TRUE;
+		for (j = 0; j < strlen(mask); j++) {
 
-			if (pattern[j] == '?') {
+			if (moduleContent[i + j] == (BYTE)"\xC1") {
+
+			}
+			if (mask[j] == '?') {
 				continue;
 			}
-			else if (pattern[j] != moduleContent[i + j]) {
+			if (pattern[j] != moduleContent[i + j]) {
 				flag = FALSE;
 				break;
 			}
@@ -55,17 +80,14 @@ DWORD patternScanning(const char* pattern, const char* moduleName, const int pro
 		}
 	}
 
-	printf("[!] Failed to find offset signature");
+	printf("[!] Failed to find signature\n");
 	return FAILED_TO_FIND_OFFSET;
 }
 
 DWORD getProcessIdByName(char* processName) {
-	WCHAR processWildName[MAX_PROCESS_NAME_LENGTH]	= { 0 };
 	DWORD processId									= 0;
 	PROCESSENTRY32 processEntry						= { 0 };
 	HANDLE hSnapshot								= NULL;
-
-	swprintf(processWildName, MAX_PROCESS_NAME_LENGTH, L"%hs", processName);
 
 	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
 	if (hSnapshot == INVALID_HANDLE_VALUE) {
@@ -75,7 +97,7 @@ DWORD getProcessIdByName(char* processName) {
 
 	processEntry.dwSize = sizeof(PROCESSENTRY32);
 	if (Process32First(hSnapshot, &processEntry)) {
-		if (!wcscmp(processEntry.szExeFile, processWildName)) {
+		if (!strcmp(processEntry.szExeFile, processName)) {
 			CloseHandle(hSnapshot);
 
 			processId = processEntry.th32ProcessID;
@@ -83,14 +105,14 @@ DWORD getProcessIdByName(char* processName) {
 		}
 	}
 	else {
-		printf("[!] Failed to copy process entry list to the buffer");
+		printf("[!] Failed to copy process entry list to the buffer\n");
 
 		CloseHandle(hSnapshot);
 		return FAILED_TO_COPY_PROCESS_ENTRY_LIST_TO_BUFFER;
 	}
 
 	while (Process32Next(hSnapshot, &processEntry)) {
-		if (!wcscmp(processEntry.szExeFile, processWildName)) {
+		if (!strcmp(processEntry.szExeFile, processName)) {
 			CloseHandle(hSnapshot);
 
 			processId = processEntry.th32ProcessID;
@@ -98,28 +120,25 @@ DWORD getProcessIdByName(char* processName) {
 		}
 	}
 
-	printf("[!] Failed to find process ID");
+	printf("[!] Failed to find processID\n");
 	CloseHandle(hSnapshot);
 	return FAILED_TO_FIND_PID;
 }
 
 HMODULE getModuleHandle(const int processId, const char* moduleName) {
-	WCHAR moduleWildName[MAX_MODULE_NAME_LENGTH] = { 0 };
 	HMODULE hModule								= NULL;
 	HANDLE hSnapshot							= NULL;
 	MODULEENTRY32 moduleEntry					= { 0 };
 
-	swprintf(moduleWildName, MAX_PROCESS_NAME_LENGTH, L"%hs", moduleName);
-
-	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
+	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE32 | TH32CS_SNAPMODULE, processId);
 	if (hSnapshot == INVALID_HANDLE_VALUE) {
-		printf("[!] Failed to open snapshot");
+		printf("[!] Failed to open snapshot\n");
 		return FAILED_TO_OPEN_SNAPSHOT;
 	}
 
 	moduleEntry.dwSize = sizeof(MODULEENTRY32);
 	if (Module32First(hSnapshot, &moduleEntry)) {
-		if (!wcscmp(moduleEntry.szModule, moduleName)) {
+		if (!strcmp(moduleEntry.szModule, moduleName)) {
 
 			hModule = moduleEntry.hModule;
 			CloseHandle(hSnapshot);
@@ -128,22 +147,22 @@ HMODULE getModuleHandle(const int processId, const char* moduleName) {
 		}
 	}
 	else {
-		printf("[!] Failed to copy module entry list to the buffer");
+		printf("[!] Failed to copy module entry list to the buffer\n");
 
 		CloseHandle(hSnapshot);
 		return FAILED_TO_COPY_MODULE_ENTRY_LIST_TO_BUFFER;
 	}
 
-	while (Module32Next(hSnapshot, &moduleEntry)) {
-		if (!wcscmp(moduleEntry.szModule, moduleName)) {
+	do {
+		if (!strcmp(moduleEntry.szModule, moduleName)) {
 
 			hModule = moduleEntry.hModule;
 			CloseHandle(hSnapshot);
 			return hModule;
 		}
-	}
+	} while (Module32Next(hSnapshot, &moduleEntry));
 
-	printf("[!] Failed to find module handle");
+	printf("[!] Failed to find module handle\n");
 	CloseHandle(hSnapshot);
 	return FAILED_TO_FIND_MODULE_HANDLE;
 }
