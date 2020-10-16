@@ -13,19 +13,25 @@ DWORD getOffset(const PatternScanningInfo* info) {
 	if (processId == FAILED_TO_FIND_PID || processId == FAILED_TO_COPY_PROCESS_ENTRY_LIST_TO_BUFFER || processId == FAILED_TO_OPEN_SNAPSHOT) {
 		return FAILED_TO_FIND_OFFSET;
 	}
+	printf("[^] ProcessID found: %d\n", processId);
 
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
-	hModule = getModuleHandle(processId, info->moduleName);
+	if (hProcess == INVALID_HANDLE_VALUE) {
+		printf("[!] Failed to open handle to the process\n");
+		return INVALID_HANDLE;
+	}
 
+	hModule = getModuleHandle(processId, info->moduleName);
 	if (hModule == FAILED_TO_FIND_MODULE_HANDLE || hModule == FAILED_TO_COPY_MODULE_ENTRY_LIST_TO_BUFFER || hModule == FAILED_TO_OPEN_SNAPSHOT) {
 		return FAILED_TO_FIND_OFFSET;
 	}
 
 	GetModuleInformation(hProcess, hModule, &moduleInfo, sizeof(moduleInfo));
+	printf("[^] Module handle found \n    Module name: %s \n    Module size: %d \n    Module entry point: 0x%p \n    Module base address: 0x%p\n", info->moduleName, moduleInfo.SizeOfImage, moduleInfo.EntryPoint, moduleInfo.lpBaseOfDll);
 
 	moduleContent = (BYTE*)malloc(moduleInfo.SizeOfImage * sizeof(BYTE));
 	if(moduleContent == NULL) {
-		printf("[!] Failed to allocate memory for module content");
+		printf("[!] Failed to allocate memory for module content\n");
 		CloseHandle(hProcess);
 
 		return ALLOCATION_FAILED;

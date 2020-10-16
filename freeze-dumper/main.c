@@ -5,10 +5,6 @@
 	freeze-dumper.exe <ProcessName> <Module> <Pattenr> <sigName> <mask> <offset>
 */
 
-/*
-	
-*/
-
 int main(int argc, char** argv) {
 	int argsValid					= 0;
 	PatternScanningInfo* info		=	NULL;
@@ -32,7 +28,7 @@ int main(int argc, char** argv) {
 
 	signatureOffset = getOffset(info);
 	if (signatureOffset != FAILED_TO_FIND_OFFSET && signatureOffset != FAILED_TO_READ_MEMORY && signatureOffset != ALLOCATION_FAILED) {
-		printf("RVA offset of signature [%s] - 0x%x\n", info->signatureName, signatureOffset);
+		printf("[$] RVA offset of signature [%s] - 0x%x\n", info->signatureName, signatureOffset);
 	}
 
 	free(patternByteArr);
@@ -46,6 +42,20 @@ int main(int argc, char** argv) {
 	system("PAUSE");
 	return TRUE;
 }
+
+/*void scanConfigFileContent(char* configFilePath) {
+	FILE* pFile = NULL;
+
+	parse_process_name
+	for () {
+		parse_name
+			parse_module_name
+			parse_signature
+			parse_mask
+
+			getPatternScanningInfo()
+	}
+}*/
 
 PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName, BYTE* pattern, char* signatureName, char* mask, int offset) {
 	PatternScanningInfo* info = NULL;
