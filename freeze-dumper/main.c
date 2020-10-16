@@ -5,6 +5,10 @@
 	freeze-dumper.exe <ProcessName> <Module> <Pattenr> <sigName> <mask> <offset>
 */
 
+/*
+	
+*/
+
 int main(int argc, char** argv) {
 	int argsValid					= 0;
 	PatternScanningInfo* info		=	NULL;
@@ -28,7 +32,7 @@ int main(int argc, char** argv) {
 
 	signatureOffset = getOffset(info);
 	if (signatureOffset != FAILED_TO_FIND_OFFSET && signatureOffset != FAILED_TO_READ_MEMORY && signatureOffset != ALLOCATION_FAILED) {
-		printf("%s's offset: %d\n", info->signatureName, signatureOffset);
+		printf("RVA offset of signature [%s] - 0x%x\n", info->signatureName, signatureOffset);
 	}
 
 	free(patternByteArr);
@@ -117,30 +121,18 @@ BYTE* convertCharArrToByteArr(char* stringToConvert, size_t byteArrLength) {
 	}
 
 	for (i = 0, j = 2; i < byteArrLength; i++, j += 4) {
-		byteValue = getByteValue(stringToConvert[j + 1]) + (16 * getByteValue(stringToConvert[j]));
+		byteValue = getHexValue(stringToConvert[j + 1]) + (16 * getHexValue(stringToConvert[j]));
 		byteArr[i] = byteValue;
 	}
 
 	return byteArr;
 }
 
-int getByteValue(char c) {
-	switch (c) {
-	case '0': return 0;
-	case '1': return 1;
-	case '2': return 2;
-	case '3': return 3;
-	case '4': return 4;
-	case '5': return 5;
-	case '6': return 6;
-	case '7': return 7;
-	case '8': return 8;
-	case '9': return 9;
-	case 'A': return 10;
-	case 'B': return 11;
-	case 'C': return 12;
-	case 'D': return 13;
-	case 'E': return 14;
-	case 'F': return 15;
-	}
+int getHexValue(char ch) {
+	if (ch >= '0' && ch <= '9')
+		return ch - '0';
+	if (ch >= 'A' && ch <= 'F')
+		return ch - 'A' + 10;
+	if (ch >= 'a' && ch <= 'f')
+		return ch - 'a' + 10;
 }

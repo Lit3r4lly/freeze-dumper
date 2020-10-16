@@ -49,6 +49,7 @@ DWORD getOffset(const PatternScanningInfo* info) {
 	}
 	
 	memcpy(&signatureOffset, &moduleContent[signatureIndex + info->offset], sizeof(DWORD));
+	signatureOffset -= (DWORD)hModule;
 
 	free(moduleContent);
 	CloseHandle(hProcess);
@@ -61,11 +62,8 @@ int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int mo
 
 	for (i = 0; i < moduleSize ; i++) {
 		flag = TRUE;
+
 		for (j = 0; j < strlen(mask); j++) {
-
-			if (moduleContent[i + j] == (BYTE)"\xC1") {
-
-			}
 			if (mask[j] == '?') {
 				continue;
 			}

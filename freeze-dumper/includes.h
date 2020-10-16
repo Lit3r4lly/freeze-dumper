@@ -29,4 +29,4 @@
 PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName, BYTE* pattern, char* signatureName, char* mask, int offset);
 int argumentsValidation(int nArgs, char** arguments);
 BYTE* convertCharArrToByteArr(char* stringToConvert, size_t byteArrLength);
-int getByteValue(char c);
+int getHexValue(char ch);
