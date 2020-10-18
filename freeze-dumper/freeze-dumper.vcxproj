@@ -139,11 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="config.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="PatternsScanning.c" />
     <ClCompile Include="Props.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="config.h" />
     <ClInclude Include="Errors.h" />
     <ClInclude Include="includes.h" />
     <ClInclude Include="PatternScanning.h" />

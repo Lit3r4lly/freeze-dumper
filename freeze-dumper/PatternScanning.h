@@ -7,9 +7,16 @@ typedef struct PatternScanningInfo {
 	char* signatureName;
 	char* mask;
 	int offset;
+	int extra;
 } PatternScanningInfo;
 
-DWORD getOffset(const PatternScanningInfo* info);
+typedef struct ModuleInformation {
+	MODULEINFO moduleInfo;
+	HMODULE hModule;
+	BYTE* moduleContent;
+} ModuleInformation;
+
+DWORD getOffset(PatternScanningInfo* info);
 int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int moduleSize, const char* mask, const int offset);
 DWORD getProcessIdByName(char* processName);
 HMODULE getModuleHandle(const int processId, const char* moduleName);

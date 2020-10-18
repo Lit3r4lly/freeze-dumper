@@ -10,8 +10,9 @@
 #include "Errors.h"
 #include "PatternScanning.h"
 #include "Props.h"
+#include "config.h"
 
-#define MAX_ARGS 7
+#define MAX_ARGS 8
 
 #define PROCESS_ARG 1
 #define MODULE_ARG 2
@@ -19,6 +20,7 @@
 #define SIGNATURE_ARG 4
 #define MASK_ARG 5
 #define OFFSET_ARG 6
+#define EXTRA_ARG 7
 
 #define MAX_PROCESS_NAME_LENGTH 0x20
 #define MAX_MODULE_NAME_LENGTH 0x20
@@ -26,7 +28,7 @@
 #define MAX_SIGNATURE_NAME_LENGTH 0x20
 #define MAX_MASK_LENGTH 0x100
 
-PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName, BYTE* pattern, char* signatureName, char* mask, int offset);
+PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName, BYTE* pattern, char* signatureName, char* mask, int offset, int extra);
 int argumentsValidation(int nArgs, char** arguments);
 BYTE* convertCharArrToByteArr(char* stringToConvert, size_t byteArrLength);
 int getHexValue(char ch);

@@ -7,11 +7,13 @@
 
 int main(int argc, char** argv) {
 	int argsValid					= 0;
-	PatternScanningInfo* info		=	NULL;
+	PatternScanningInfo* info		= NULL;
 	DWORD signatureOffset			= 0;
 	BYTE* patternByteArr			= NULL;
 
 	printf("Welcme to freeze-dumper, a tool made for dumping offsets / netvars for CS:GO\n");
+	parseConfigFile(argv[1]);
+
 	if (argumentsValidation(argc, argv) != TRUE) {
 		return ARGS_NOT_VALID;
 	}
@@ -21,7 +23,7 @@ int main(int argc, char** argv) {
 		return ALLOCATION_FAILED;
 	}
 
-	info = getPatternScanningInfo(argv[PROCESS_ARG], argv[MODULE_ARG], patternByteArr, argv[SIGNATURE_ARG], argv[MASK_ARG], atoi(argv[OFFSET_ARG]));
+	info = getPatternScanningInfo(argv[PROCESS_ARG], argv[MODULE_ARG], patternByteArr, argv[SIGNATURE_ARG], argv[MASK_ARG], atoi(argv[OFFSET_ARG]), atoi(argv[EXTRA_ARG]));
 	if (info == ALLOCATION_FAILED) {
 		return ALLOCATION_FAILED;
 	}
@@ -29,6 +31,8 @@ int main(int argc, char** argv) {
 	signatureOffset = getOffset(info);
 	if (signatureOffset != FAILED_TO_FIND_OFFSET && signatureOffset != FAILED_TO_READ_MEMORY && signatureOffset != ALLOCATION_FAILED) {
 		printf("[$] RVA offset of signature [%s] - 0x%x\n", info->signatureName, signatureOffset);
+	} else {
+		printf("[!] Failed to find signature [%s]\n", info->signatureName);
 	}
 
 	free(patternByteArr);
@@ -43,21 +47,7 @@ int main(int argc, char** argv) {
 	return TRUE;
 }
 
-/*void scanConfigFileContent(char* configFilePath) {
-	FILE* pFile = NULL;
-
-	parse_process_name
-	for () {
-		parse_name
-			parse_module_name
-			parse_signature
-			parse_mask
-
-			getPatternScanningInfo()
-	}
-}*/
-
-PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName, BYTE* pattern, char* signatureName, char* mask, int offset) {
+PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName, BYTE* pattern, char* signatureName, char* mask, int offset, int extra) {
 	PatternScanningInfo* info = NULL;
 
 	info = (void*)malloc(sizeof(PatternScanningInfo));
@@ -83,7 +73,7 @@ PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName,
 	strcpy(info->signatureName, signatureName);
 	strcpy(info->mask, mask);
 	info->offset = offset;
-
+	info->extra = extra;
 	return info;
 }
 
@@ -112,7 +102,7 @@ int argumentsValidation(int nArgs, char** arguments) {
 		printf("[!] Mask length is too long\n");
 		return MASK_LENGTH_TOO_LONG;
 	}
-	// too lazy for checking if offset is a number
+	// too lazy for checking if offset is a number or if extra is a number
 
 	return TRUE;
 }

@@ -1,19 +1,19 @@
 #include "includes.h"
 
-DWORD getOffset(const PatternScanningInfo* info) {
-	int processId			= 0;
-	DWORD signatureIndex	= 0;
-	BYTE* moduleContent		= NULL;
-	HANDLE hProcess			= NULL;
-	HMODULE hModule			= NULL;
-	MODULEINFO moduleInfo	= { 0 };
-	DWORD signatureOffset	= 0; 
+DWORD getOffset(PatternScanningInfo* info) {
+	int processId = 0;
+	DWORD signatureIndex = 0;
+	BYTE* moduleContent = NULL;
+	HANDLE hProcess = NULL;
+	HMODULE hModule = NULL;
+	MODULEINFO moduleInfo = { 0 };
+	DWORD signatureOffset = 0;
 
 	processId = getProcessIdByName(info->processName);
 	if (processId == FAILED_TO_FIND_PID || processId == FAILED_TO_COPY_PROCESS_ENTRY_LIST_TO_BUFFER || processId == FAILED_TO_OPEN_SNAPSHOT) {
 		return FAILED_TO_FIND_OFFSET;
 	}
-	printf("[^] ProcessID found: %d\n", processId);
+	//printf("[^] ProcessID found: %d\n", processId);
 
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
 	if (hProcess == INVALID_HANDLE_VALUE) {
@@ -27,10 +27,10 @@ DWORD getOffset(const PatternScanningInfo* info) {
 	}
 
 	GetModuleInformation(hProcess, hModule, &moduleInfo, sizeof(moduleInfo));
-	printf("[^] Module handle found \n    Module name: %s \n    Module size: %d \n    Module entry point: 0x%p \n    Module base address: 0x%p\n", info->moduleName, moduleInfo.SizeOfImage, moduleInfo.EntryPoint, moduleInfo.lpBaseOfDll);
+	//printf("[^] Module handle found \n    Module name: %s \n    Module size: %d \n    Module entry point: 0x%p \n    Module base address: 0x%p\n", info->moduleName, moduleInfo.SizeOfImage, moduleInfo.EntryPoint, moduleInfo.lpBaseOfDll);
 
 	moduleContent = (BYTE*)malloc(moduleInfo.SizeOfImage * sizeof(BYTE));
-	if(moduleContent == NULL) {
+	if (moduleContent == NULL) {
 		printf("[!] Failed to allocate memory for module content\n");
 		CloseHandle(hProcess);
 
@@ -39,10 +39,10 @@ DWORD getOffset(const PatternScanningInfo* info) {
 
 	if (!ReadProcessMemory(hProcess, (void*)hModule, (void*)moduleContent, (size_t)moduleInfo.SizeOfImage, NULL)) {
 		printf("[!] Failed to read memory from the module\n");
-		
+
 		free(moduleContent);
 		CloseHandle(hProcess);
-		
+
 		return FAILED_TO_READ_MEMORY;
 	}
 
@@ -53,15 +53,15 @@ DWORD getOffset(const PatternScanningInfo* info) {
 
 		return FAILED_TO_FIND_OFFSET;
 	}
-	
+
 	memcpy(&signatureOffset, &moduleContent[signatureIndex + info->offset], sizeof(DWORD));
 	signatureOffset -= (DWORD)hModule;
+	signatureOffset += (DWORD)info->extra;
 
 	free(moduleContent);
 	CloseHandle(hProcess);
 	return signatureOffset;
 }
-
 int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int moduleSize, const char* mask, const int offset) {
 	DWORD i, j	= 0;
 	int flag	= TRUE;
@@ -84,7 +84,6 @@ int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int mo
 		}
 	}
 
-	printf("[!] Failed to find signature\n");
 	return FAILED_TO_FIND_OFFSET;
 }
 
