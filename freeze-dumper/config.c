@@ -4,6 +4,8 @@ int parseConfigFile(char* configFilePath) {
 	FILE* pFile						= NULL;
 	int lineLength					= 0;
 	char* lineContent				= 0;
+	char* tempToWrite				= 0;
+	int numberWritten				= 0;
 
 	BYTE* patternByteArr			= 0;
 	char* processName				= 0;
@@ -41,6 +43,16 @@ int parseConfigFile(char* configFilePath) {
 	lineLength = charCount(pFile, '\n');
 	lineContent = (char*)malloc((__int64)lineLength + 1);
 
+	tempToWrite = (char*)malloc(strlen(processName) + 40);
+	if (tempToWrite == NULL) {
+		printf("[!] Failed to allocate memory for wiritng process name to output file");
+		return ALLOCATION_FAILED;
+	}
+	sprintf(tempToWrite, "// Porcess: %s \n\n// Signatures\n", processName);
+
+	writeResultFile(tempToWrite, numberWritten);
+	numberWritten++;
+
 	while (EOF != fscanf(pFile, "%[^\n]\n", lineContent)) {
 		signatureName = strtok(lineContent, " : ");
 		moduleName = strtok(NULL, " : ");
@@ -58,10 +70,19 @@ int parseConfigFile(char* configFilePath) {
 
 		signatureOffset = getOffset(info);
 		if (signatureOffset != FAILED_TO_FIND_OFFSET && signatureOffset != FAILED_TO_READ_MEMORY && signatureOffset != ALLOCATION_FAILED) {
-			printf("[$] RVA offset of signature [%s] - 0x%x\n", info->signatureName, signatureOffset);
+			printf("[$] RVA offset of signature [%s] - 0x%X\n", info->signatureName, signatureOffset);
 		} else {
 			printf("[!] Failed to find signature [%s]\n", info->signatureName);
 		}
+
+		tempToWrite = (char*)malloc(strlen(info->signatureName) + 40);
+		if (tempToWrite == NULL) {
+			printf("[!] Failed to allocate memory for wiritng process name to output file");
+			return ALLOCATION_FAILED;
+		}
+		sprintf(tempToWrite, "const unsigned int %s = 0x%X;\n", info->signatureName, signatureOffset);
+
+		writeResultFile(tempToWrite, numberWritten);
 
 		free(patternByteArr);
 		free(lineContent);
@@ -82,19 +103,30 @@ int parseConfigFile(char* configFilePath) {
 
 	free(lineContent);
 	free(processName);
+	return TRUE;
 }
 
-int writeResultFile(char* stringToWrite) {
+int writeResultFile(char* stringToWrite, int numberWritten) {
 	FILE* pFile = NULL;
 
-	pFile = fopen("csgo.h", "a");
+	if (numberWritten == 0 && fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "r") == NULL ) {
+		pFile = fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "wb");
+	}
+	else if (numberWritten != 0 && fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "r") != NULL) {
+		pFile = fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "ab");
+	}
+	else {
+		pFile = fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "wb");
+	}
+
 	if (pFile == NULL) {
 		printf("[!] Failed to write results to file 'csgo.h'\n");
 		return WRITE_DATA_TO_FILE_FAILED;
 	}
 
-	fwrite(stringToWrite, 1, sizeof(stringToWrite), pFile);
+	fputs(stringToWrite, pFile);
 	fclose(pFile);
+	free(stringToWrite);
 }
 
 int charCount(FILE* pFile, char specialChar)

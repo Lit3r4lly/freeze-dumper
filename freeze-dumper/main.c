@@ -6,42 +6,23 @@
 */
 
 int main(int argc, char** argv) {
-	int argsValid					= 0;
-	PatternScanningInfo* info		= NULL;
-	DWORD signatureOffset			= 0;
-	BYTE* patternByteArr			= NULL;
+	int status = 0;
 
 	printf("Welcme to freeze-dumper, a tool made for dumping offsets / netvars for CS:GO\n");
-	parseConfigFile(argv[1]);
 
-	if (argumentsValidation(argc, argv) != TRUE) {
-		return ARGS_NOT_VALID;
+	if (argc != MAX_ARGS) {
+		printf("[!] Not enough \ Too much arguments");
+		return NOT_ENOUGH_ARGS;
+	}
+	else if (fopen(argv[CONFIG_ARG], "r") == NULL) {
+		printf("[!] Config file dosent exist");
+		return FILE_DOSENT_EXIST;
 	}
 
-	patternByteArr = convertCharArrToByteArr(argv[PATTERN_ARG], strlen(argv[MASK_ARG]));
-	if (patternByteArr == ALLOCATION_FAILED) {
-		return ALLOCATION_FAILED;
+	status = parseConfigFile(argv[CONFIG_ARG]);
+	if (status == TRUE) {
+		printf("[^] Finished to dump signatures offsets\n");
 	}
-
-	info = getPatternScanningInfo(argv[PROCESS_ARG], argv[MODULE_ARG], patternByteArr, argv[SIGNATURE_ARG], argv[MASK_ARG], atoi(argv[OFFSET_ARG]), atoi(argv[EXTRA_ARG]));
-	if (info == ALLOCATION_FAILED) {
-		return ALLOCATION_FAILED;
-	}
-
-	signatureOffset = getOffset(info);
-	if (signatureOffset != FAILED_TO_FIND_OFFSET && signatureOffset != FAILED_TO_READ_MEMORY && signatureOffset != ALLOCATION_FAILED) {
-		printf("[$] RVA offset of signature [%s] - 0x%x\n", info->signatureName, signatureOffset);
-	} else {
-		printf("[!] Failed to find signature [%s]\n", info->signatureName);
-	}
-
-	free(patternByteArr);
-	free(info->processName);
-	free(info->moduleName);
-	free(info->pattern);
-	free(info->signatureName);
-	free(info->mask);
-	free(info);
 
 	system("PAUSE");
 	return TRUE;
@@ -75,36 +56,6 @@ PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName,
 	info->offset = offset;
 	info->extra = extra;
 	return info;
-}
-
-int argumentsValidation(int nArgs, char** arguments) {
-	if (nArgs < MAX_ARGS || nArgs > MAX_ARGS) {
-		printf("[!] Not enough arguments / too much arguments\n");
-		return NOT_ENOUGH_ARGS;
-	}
-	else if (strlen(arguments[PROCESS_ARG]) >= MAX_PROCESS_NAME_LENGTH) {
-		printf("[!] Process name length is too long\n");
-		return PROCESS_NAME_LENGTH_TOO_LONG;
-	}
-	else if (strlen(arguments[MODULE_ARG]) >= MAX_MODULE_NAME_LENGTH) {
-		printf("[!] Module name length is too long\n");
-		return MODULE_NAME_LENGTH_TOO_LONG;
-	}
-	else if (strlen(arguments[PATTERN_ARG]) >= MAX_PATTERN_LENGTH) {
-		printf("[!] Pattern length is too long\n");
-		return PATTERN_LENGTH_TOO_LONG;
-	}
-	else if (strlen(arguments[SIGNATURE_ARG]) >= MAX_SIGNATURE_NAME_LENGTH) {
-		printf("[!] Signature name length is too long\n");
-		return SIGNATURE_NAME_LENGTH_TOO_LONG;
-	}
-	else if (strlen(arguments[MASK_ARG]) >= MAX_MASK_LENGTH) {
-		printf("[!] Mask length is too long\n");
-		return MASK_LENGTH_TOO_LONG;
-	}
-	// too lazy for checking if offset is a number or if extra is a number
-
-	return TRUE;
 }
 
 BYTE* convertCharArrToByteArr(char* stringToConvert, size_t byteArrLength) {
