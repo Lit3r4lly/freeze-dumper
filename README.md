@@ -1,14 +1,14 @@
 # freeze-dumper
 
-freeze-dumper is made for CS:GO cheats development, and contains offsets and netvars dumper that can make your cheats works dynamically.
+freeze-dumper is made for CS:GO cheats development, and contains offsets and netvars dumper that can make your cheats work dynamically.
 
 ## Remarks
 
-- Recommended - build in x64 (debug or release mode)
+- Recommended - build for x64 (debug or release mode)
 - Run only when CS:GO is running
 - Header file will be created in the same folder as the program is running in
 - For now, this program is mainly used for CS:GO cheats, but you can also try to customize your own config file for whatever game / process you would like to scan
-- Config file should be .txt file and follow the [instructions below](##Config-format)
+- Config file should be .txt file and follow the [instructions below](#config-format)
 
 ## Features
 
@@ -17,32 +17,33 @@ freeze-dumper is made for CS:GO cheats development, and contains offsets and net
 
 ## How does offsets dumping work?
 
-In CS:GO, a process memory contains some real-time information about the game, for example: health pointer that points to an area in the module memory which holds the player's health.  
-These pointers are called offsets - offsets point to the locations where the desired information is stored at (like the heatlh pointer example).  
+In CS:GO a process memory contains some real-time information about the game, for example: health pointer that points to an area in the module memory which holds the player's health.  
+These pointers are called offsets - offsets point to the locations where the desired information is stored at (like the health pointer example).  
   
 **So... how can we get these offsets?**  
-Offsets are usually represented as hex characters sequence in the module content (raw binary) inside the bracket that exist in r/m64 instructions, for example -  `mov rax, [module_name.dll + <offset>]`.  
-So, what we would like to to do is to take the `<offset>` part from the hex characters sequence by using a technique called 'Pattern Scanning'.
+Offsets are usually represented as hex number (when looking at r/m64 instructions and so on).  
+For example -  `mov rax, [module_name.dll + <offset>]`.  
+So, what we would like to do is to take the `<offset>` part from the hex characters sequence by using a technique called 'Pattern Scanning'.
 
-*What is Pattern Scanning?*  
-First of all, as you know (or not), Valve is changing its offsets every single update, for this matter we would like to use Pattern Scanning techniqe that can let us get these offsets more dynamically.  
+**What is Pattern Scanning?**  
+First of all, as you know (or not), Valve is changing its offsets every single update,because of that we would like to automate the task of extracting those offsets using "Pattern Scanning".  
 Pattern Scanning is a technique which is made for extracting offsets from modules contents and more specifically from the r/m64 instructions as we mentioned above.  
 We are implementing this technique by looking for the surrounding instructions code and then extracting the offset from this bytes sequecne.  
 
-For pattern scanning we need two main elements:  
-`Pattern` - a pattern is a number of instructions that are represented by a bytes sequence and includes a specific r/m64 instruction that contains the offset as mentioned above.  
+**For pattern scanning we need two main elements:**  
+`Pattern` - a pattern is a number of instructions that are represented by a byte sequence and includes a specific r/m64 instruction that contains the offset as mentioned above.  
 `Mask` -  a mask defines which bytes of your pattern are wildcards and which are not, by using the characters '?' and 'x'.  
 The character 'x' means 'byte must match with the one from the module content' and  the character '?' means 'the index of where we can find the offset in the module content respectively with the pattern'  
 
-For example:  
+**For example:**  
 Pattern - `\xA1\x00\x00\x00\x00\x33\xD2\x6A\x00\x6A\x00\x33\xC9\x89\xB0`  
 Mask -  `x????xxxxxxxxxx`  
 
 To sum it up, we want to make our technique useable, by comparing each byte in the module content with the bytes in the pattern, and if we will end up in the same iteration with a wild card, we will skip this iteration cause we want to be sure that the whole pattern match this part in the module content.  
 
-Fully implemntation of the tecnique can be found in the 'Pattern Scanning.c' file.
+Fully implementation of the tecnique can be found in the 'Pattern Scanning.c' file.
 
-TADA! we got the offset :)  
+TADA! we get the offset :)  
 
 ## Usage
 
