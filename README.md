@@ -51,7 +51,7 @@ TADA! we get the offset :)
 [$] Usage:  
         freeze-dumper.exe <config_path>
 [*] Examples:  
-        freeze-dumper.exe "config.h"
+        freeze-dumper.exe "config.txt"
 ```
 
 ## Config-format
