@@ -6,6 +6,8 @@ int parseConfigFile(char* configFilePath) {
 	char* lineContent				= 0;
 	char* tempToWrite				= 0;
 	int numberWritten				= 0;
+	int status						= 0;
+	int seekLocation				= 0;
 
 	BYTE* patternByteArr			= 0;
 	char* processName				= 0;
@@ -50,7 +52,10 @@ int parseConfigFile(char* configFilePath) {
 	}
 	sprintf(tempToWrite, "// Porcess: %s \n\n// Signatures\n", processName);
 
-	writeResultFile(tempToWrite, numberWritten);
+	status = writeResultFile(tempToWrite, numberWritten);
+	if (status == WRITE_DATA_TO_FILE_FAILED) {
+		return WRITE_DATA_TO_FILE_FAILED;
+	}
 	numberWritten++;
 
 	while (EOF != fscanf(pFile, "%[^\n]\n", lineContent)) {
@@ -82,7 +87,10 @@ int parseConfigFile(char* configFilePath) {
 		}
 		sprintf(tempToWrite, "const unsigned int %s = 0x%X;\n", info->signatureName, signatureOffset);
 
-		writeResultFile(tempToWrite, numberWritten);
+		status = writeResultFile(tempToWrite, numberWritten);
+		if (status == WRITE_DATA_TO_FILE_FAILED) {
+			return WRITE_DATA_TO_FILE_FAILED;
+		}
 
 		free(patternByteArr);
 		free(lineContent);
@@ -103,20 +111,21 @@ int parseConfigFile(char* configFilePath) {
 
 	free(lineContent);
 	free(processName);
+	fclose(pFile);
 	return TRUE;
 }
 
 int writeResultFile(char* stringToWrite, int numberWritten) {
 	FILE* pFile = NULL;
 
-	if (numberWritten == 0 && fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "r") == NULL ) {
-		pFile = fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "wb");
+	if (numberWritten == 0 && fopen("sgo.h", "r") == NULL ) {
+		pFile = fopen("csgo.h", "wb");
 	}
-	else if (numberWritten != 0 && fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "r") != NULL) {
-		pFile = fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "ab");
+	else if (numberWritten != 0 && fopen("csgo.h", "r") != NULL) {
+		pFile = fopen("csgo.h", "ab");
 	}
 	else {
-		pFile = fopen("C:\\Users\\משתמש\\OneDrive\\OneDrive\\Documents\\Projects\\freeze-dumper\\freeze-dumper\\csgo.h", "wb");
+		pFile = fopen("csgo.h", "wb");
 	}
 
 	if (pFile == NULL) {

@@ -17,6 +17,6 @@ typedef struct ModuleInformation {
 } ModuleInformation;
 
 DWORD getOffset(PatternScanningInfo* info);
-int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int moduleSize, const char* mask, const int offset);
+int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int moduleSize, const char* mask);
 DWORD getProcessIdByName(char* processName);
 HMODULE getModuleHandle(const int processId, const char* moduleName);

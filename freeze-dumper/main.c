@@ -2,7 +2,7 @@
 
 /*
 	Args:
-	freeze-dumper.exe <ProcessName> <Module> <Pattenr> <sigName> <mask> <offset>
+	freeze-dumper.exe <config_path>
 */
 
 int main(int argc, char** argv) {
@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
 	printf("Welcme to freeze-dumper, a tool made for dumping offsets / netvars for CS:GO\n");
 
 	if (argc != MAX_ARGS) {
-		printf("[!] Not enough \ Too much arguments");
+		printf("[!] Not enough \\ Too much arguments");
 		return NOT_ENOUGH_ARGS;
 	}
 	else if (fopen(argv[CONFIG_ARG], "r") == NULL) {
@@ -27,6 +27,15 @@ int main(int argc, char** argv) {
 	system("PAUSE");
 	return TRUE;
 }
+
+/*
+	This function returns a struct that handles the required info for the pattern scanning
+	In:
+		process name, module name, pattern for scanning, signature name, pattern mask, offset for the sig offset, extra to be added to the result offset
+	
+	Out:
+		PatternScanningInfo struct pointer
+*/
 
 PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName, BYTE* pattern, char* signatureName, char* mask, int offset, int extra) {
 	PatternScanningInfo* info = NULL;
@@ -58,6 +67,15 @@ PatternScanningInfo* getPatternScanningInfo(char* processName, char* moduleName,
 	return info;
 }
 
+/*
+	This function convert a char array (string) to a byte array
+	In:
+		string to convert, byte array length
+
+	Out:
+		a byte array
+*/
+
 BYTE* convertCharArrToByteArr(char* stringToConvert, size_t byteArrLength) {
 	int i				= 0;
 	int j				= 0;
@@ -78,6 +96,15 @@ BYTE* convertCharArrToByteArr(char* stringToConvert, size_t byteArrLength) {
 
 	return byteArr;
 }
+
+/*
+	This function returns a hex value of hex digit as integer
+	In:
+		a required char for his value
+
+	Out:
+		a integer value who holds the hex value
+*/
 
 int getHexValue(char ch) {
 	if (ch >= '0' && ch <= '9')

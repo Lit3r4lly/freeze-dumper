@@ -1,5 +1,14 @@
 #include "includes.h"
 
+/*
+	This function control the pattern scanning section
+	In:
+		a PatternScanningInfo with the required information
+
+	Out:
+		the offset
+*/
+
 DWORD getOffset(PatternScanningInfo* info) {
 	int processId = 0;
 	DWORD signatureIndex = 0;
@@ -13,7 +22,6 @@ DWORD getOffset(PatternScanningInfo* info) {
 	if (processId == FAILED_TO_FIND_PID || processId == FAILED_TO_COPY_PROCESS_ENTRY_LIST_TO_BUFFER || processId == FAILED_TO_OPEN_SNAPSHOT) {
 		return FAILED_TO_FIND_OFFSET;
 	}
-	//printf("[^] ProcessID found: %d\n", processId);
 
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
 	if (hProcess == INVALID_HANDLE_VALUE) {
@@ -27,7 +35,6 @@ DWORD getOffset(PatternScanningInfo* info) {
 	}
 
 	GetModuleInformation(hProcess, hModule, &moduleInfo, sizeof(moduleInfo));
-	//printf("[^] Module handle found \n    Module name: %s \n    Module size: %d \n    Module entry point: 0x%p \n    Module base address: 0x%p\n", info->moduleName, moduleInfo.SizeOfImage, moduleInfo.EntryPoint, moduleInfo.lpBaseOfDll);
 
 	moduleContent = (BYTE*)malloc(moduleInfo.SizeOfImage * sizeof(BYTE));
 	if (moduleContent == NULL) {
@@ -62,7 +69,17 @@ DWORD getOffset(PatternScanningInfo* info) {
 	CloseHandle(hProcess);
 	return signatureOffset;
 }
-int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int moduleSize, const char* mask, const int offset) {
+
+/*
+	This function execute the actual pattern scanning, its passing along the loop of the pattern and the module content and trying to match an equal bytes
+	In:
+		pattern for scanning, module content, module size, pattern mask
+	
+	Out:
+		an index where the offset is located in the byte array of the module content
+*/
+
+int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int moduleSize, const char* mask) {
 	DWORD i, j	= 0;
 	int flag	= TRUE;
 
@@ -86,6 +103,15 @@ int patternScanning(const BYTE* pattern, const BYTE* moduleContent, const int mo
 
 	return FAILED_TO_FIND_OFFSET;
 }
+
+/*
+	This functuion returns process ID by the name
+	In:
+		process name
+
+	Out:
+		process ID
+*/
 
 DWORD getProcessIdByName(char* processName) {
 	DWORD processId									= 0;
@@ -127,6 +153,15 @@ DWORD getProcessIdByName(char* processName) {
 	CloseHandle(hSnapshot);
 	return FAILED_TO_FIND_PID;
 }
+
+/*
+	This function returns module handle - module base address
+	In:
+		process ID (parent process), module name
+
+	Out:
+		module handle - module base address
+*/
 
 HMODULE getModuleHandle(const int processId, const char* moduleName) {
 	HMODULE hModule								= NULL;

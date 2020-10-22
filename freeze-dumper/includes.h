@@ -9,7 +9,6 @@
 
 #include "Errors.h"
 #include "PatternScanning.h"
-#include "Props.h"
 #include "config.h"
 
 #define MAX_ARGS 2

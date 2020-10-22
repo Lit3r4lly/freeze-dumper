@@ -21,9 +21,6 @@
     <ClCompile Include="PatternsScanning.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Props.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="config.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,9 +33,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PatternScanning.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Props.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
