@@ -56,7 +56,7 @@ TADA! we get the offset :)
 
 ## Config-format
 
-Config file should be .txt file and follow this format (!):  
+For your convenience, I made a config file (config.txt) which contains the most important signatures, but if you still want to make your own config file, it should be .txt file and follow this format (!):  
 ```
 <process_name>  
 <signature_name1> : <module_name1> : <pattern1> : <mask1> : <offset1> : <extra1> :  
@@ -66,8 +66,6 @@ Config file should be .txt file and follow this format (!):
 ...
 <signature_name20> : <module_name20> : <pattern20> : <mask20> : <offset20> : <extra20> :
 ```
-
-For your convenience, I made a config file (config.txt) which contains the most important signatures.  
 
 ## Build
 
