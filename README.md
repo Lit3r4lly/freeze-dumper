@@ -69,7 +69,7 @@ For your convenience, I made a config file (config.txt) which contains the most 
 
 ## Build
 
-freeze-dumper can be built with Visual Studio 2019, by opening the .sin file and build the project (Ctrl+Shift+B) in a Release Mode or a Debug Mode, whatever you want to (x64)
+freeze-dumper DiscordOverlyHooking can be built with Visual Studio 2019, by opening the .sln file and build the project (Ctrl+Shift+B) in a Release Mode or Debug Mode, whatever you want to (x64)  
 
 ## Issues
 
